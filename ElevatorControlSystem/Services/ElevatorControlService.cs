@@ -7,11 +7,16 @@ namespace ElevatorControlSystem.Models
 {
     public class ElevatorControlService
     {
-        private const int TimeBetweenFloorsInSeconds = 3;
+        private readonly int _timeBetweenFloorsInSeconds;
 
         public List<int> FloorQueue { get; } = new List<int>();
-        public ElevatorStatus Status { get; }
-        public ElevatorCarLiftingDirection LiftingDirection { get; }
+        public ElevatorStatus Status { get; } = ElevatorStatus.Stopped;
+        public ElevatorCarLiftingDirection LiftingDirection { get; } = ElevatorCarLiftingDirection.None;
+
+        public ElevatorControlService(int timeBetweenFloorsInSeconds)
+        {
+            _timeBetweenFloorsInSeconds = timeBetweenFloorsInSeconds;
+        }
 
         public void EnqueueFloor(int floor)
         {
@@ -32,20 +37,17 @@ namespace ElevatorControlSystem.Models
 
             var estimatedTimeOfArrival = 0;
 
-            foreach (var queuedFloor in floorDestinationsToIncludeInTimeEstimate)
+            foreach (var currentFloor in floorDestinationsToIncludeInTimeEstimate)
             {
-                var indexOfNextFloor = floorDestinationsToIncludeInTimeEstimate.IndexOf(queuedFloor) + 1;
+                var indexOfNextFloor = floorDestinationsToIncludeInTimeEstimate.IndexOf(currentFloor) + 1;
 
                 if (indexOfNextFloor + 1 > floorDestinationsToIncludeInTimeEstimate.Count) break;
 
                 var nextFloor = floorDestinationsToIncludeInTimeEstimate[indexOfNextFloor];
 
-                var highestFloor = Math.Max(queuedFloor, nextFloor);
-                var lowestFloor = Math.Min(queuedFloor, nextFloor);
+                var floorsBetween = Math.Abs(nextFloor - currentFloor);
 
-                var floorsBetween = highestFloor - lowestFloor;
-
-                estimatedTimeOfArrival += floorsBetween * TimeBetweenFloorsInSeconds;
+                estimatedTimeOfArrival += floorsBetween * _timeBetweenFloorsInSeconds;
             }
 
             return estimatedTimeOfArrival;

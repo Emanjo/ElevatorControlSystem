@@ -9,7 +9,7 @@ namespace ElevatorControlSystem
         {
             Console.WriteLine("Hello World!");
 
-            var elevatorControl = new ElevatorControlService();
+            var elevatorControl = new ElevatorControlService(3);
 
             elevatorControl.EnqueueFloor(1);
             elevatorControl.EnqueueFloor(4);
