@@ -1,4 +1,4 @@
-﻿namespace ElevatorControl.Models
+﻿namespace ElevatorControlSystem.Models.Enums
 {
     public enum ElevatorCarLiftingDirection
     {
