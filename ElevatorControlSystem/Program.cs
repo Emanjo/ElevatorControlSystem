@@ -1,5 +1,6 @@
 ﻿using ElevatorControlSystem.Models;
 using System;
+using System.Collections.Generic;
 
 namespace ElevatorControlSystem
 {
@@ -11,14 +12,30 @@ namespace ElevatorControlSystem
 
             var elevatorControl = new ElevatorControlService(3);
 
-            elevatorControl.EnqueueFloor(1);
-            elevatorControl.EnqueueFloor(4);
-            elevatorControl.EnqueueFloor(2);
-            elevatorControl.EnqueueFloor(0);
+            do
+            {
+                bool shouldEnterMoreFloors;
+                do
+                {
+                    Console.WriteLine("Enter floor or press enter to continue:");
+                    var choice = Console.ReadLine();
 
-            var estimatedTimeForFloor = elevatorControl.GetEstimatedTimeForFloor(2);
+                    if (string.IsNullOrWhiteSpace(choice)) break;
 
-            Console.WriteLine(estimatedTimeForFloor);
+                    if (!int.TryParse(choice, out int choiseAsInt)) 
+                    {
+                        Console.WriteLine("Wrong format of floor!");
+                        shouldEnterMoreFloors = true;
+                        continue;
+                    }
+
+                    elevatorControl.EnqueueFloor(choiseAsInt);
+                    shouldEnterMoreFloors = true;
+                }
+                while (shouldEnterMoreFloors);
+
+            }
+            while (elevatorControl.RunElevator());
         }
     }
 }

@@ -9,13 +9,30 @@ namespace ElevatorControlSystem.Models
     {
         private readonly int _timeBetweenFloorsInSeconds;
 
-        public List<int> FloorQueue { get; } = new List<int>();
-        public ElevatorStatus Status { get; } = ElevatorStatus.Stopped;
-        public ElevatorCarLiftingDirection LiftingDirection { get; } = ElevatorCarLiftingDirection.None;
+        private List<int> FloorQueue = new List<int>();
+        private int CurrentFloor = 0;
+        public ElevatorStatus Status { get; private set; } = ElevatorStatus.Stopped;
+        public ElevatorCarLiftingDirection LiftingDirection { get; private set; } = ElevatorCarLiftingDirection.None;
 
         public ElevatorControlService(int timeBetweenFloorsInSeconds)
         {
             _timeBetweenFloorsInSeconds = timeBetweenFloorsInSeconds;
+        }
+
+        public bool RunElevator()
+        {
+            if(FloorQueue.Count > 0)
+            {
+                var nextFloor = FloorQueue.FirstOrDefault();
+
+                Console.WriteLine($"Going to floor {nextFloor}...");
+
+                CurrentFloor = nextFloor;
+
+                return FloorQueue.Remove(nextFloor);
+            }
+
+            return false;
         }
 
         public void EnqueueFloor(int floor)
@@ -51,6 +68,14 @@ namespace ElevatorControlSystem.Models
             }
 
             return estimatedTimeOfArrival;
+        }
+
+        public void EmergencyStop()
+        {
+            Status = ElevatorStatus.Stopped;
+            LiftingDirection = ElevatorCarLiftingDirection.None;
+
+            FloorQueue.Clear();
         }
     }
 }
