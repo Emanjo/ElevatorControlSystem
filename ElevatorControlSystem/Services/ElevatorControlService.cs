@@ -7,36 +7,58 @@ namespace ElevatorControlSystem.Models
 {
     public class ElevatorControlService
     {
-        private readonly int _timeBetweenFloorsInSeconds;
-
-        private List<int> FloorQueue = new List<int>();
-        private int CurrentFloor = 0;
+        public int CurrentFloor { get; private set; } = 0;
         public ElevatorStatus Status { get; private set; } = ElevatorStatus.Stopped;
-        public ElevatorCarLiftingDirection LiftingDirection { get; private set; } = ElevatorCarLiftingDirection.None;
+        
+        private readonly ElevatorStatusService _elevatorStatusService;
+        private readonly int _timeBetweenFloorsInSeconds = 3;
+        private List<int> FloorQueue = new List<int>();
 
-        public ElevatorControlService(int timeBetweenFloorsInSeconds)
+        public ElevatorControlService(ElevatorStatusService elevatorStatusService)
         {
-            _timeBetweenFloorsInSeconds = timeBetweenFloorsInSeconds;
+            _elevatorStatusService = elevatorStatusService;
         }
 
-        public bool RunElevator()
+        public bool GoToNextFloor()
         {
+            if (Status == ElevatorStatus.Emergency) return false;
+
             if(FloorQueue.Count > 0)
             {
                 var nextFloor = FloorQueue.FirstOrDefault();
 
-                Console.WriteLine($"Going to floor {nextFloor}...");
+                Status = ElevatorStatus.Running;
+
+                var liftingDirection = _elevatorStatusService.GetLiftingDirection(nextFloor, CurrentFloor);
+
+                var estimatedTime = _elevatorStatusService.GetEstimatedTimeForFloor(FloorQueue, 
+                    CurrentFloor,
+                    nextFloor, 
+                    _timeBetweenFloorsInSeconds);
+
+                Console.WriteLine($"Going {liftingDirection.ToString().ToLower()} to floor {nextFloor}... ETA: {estimatedTime} second(s)");
+
+                Console.WriteLine($"Arrived!");
 
                 CurrentFloor = nextFloor;
 
-                return FloorQueue.Remove(nextFloor);
+                if(FloorQueue.Remove(nextFloor))
+                {
+                    Status = ElevatorStatus.Stopped;
+                    return true;
+                }
             }
 
+            Status = ElevatorStatus.Stopped;
             return false;
         }
 
         public void EnqueueFloor(int floor)
         {
+            if (floor == CurrentFloor) return;
+
+            if (Status == ElevatorStatus.Emergency) return;
+
             var floorAlreadyEnqueued = FloorQueue.Any(queueElement => queueElement == floor);
 
             if (floorAlreadyEnqueued) return;
@@ -44,37 +66,9 @@ namespace ElevatorControlSystem.Models
             FloorQueue.Add(floor);
         }
 
-        public int GetEstimatedTimeForFloor(int floor)
-        {
-            var floorPlacementInQueueIndex = FloorQueue.IndexOf(floor);
-
-            if (floorPlacementInQueueIndex == -1 || floorPlacementInQueueIndex + 1 > FloorQueue.Count) return 0;
-
-            var floorDestinationsToIncludeInTimeEstimate = FloorQueue.Take(floorPlacementInQueueIndex + 1).ToList();
-
-            var estimatedTimeOfArrival = 0;
-
-            foreach (var currentFloor in floorDestinationsToIncludeInTimeEstimate)
-            {
-                var indexOfNextFloor = floorDestinationsToIncludeInTimeEstimate.IndexOf(currentFloor) + 1;
-
-                if (indexOfNextFloor + 1 > floorDestinationsToIncludeInTimeEstimate.Count) break;
-
-                var nextFloor = floorDestinationsToIncludeInTimeEstimate[indexOfNextFloor];
-
-                var floorsBetween = Math.Abs(nextFloor - currentFloor);
-
-                estimatedTimeOfArrival += floorsBetween * _timeBetweenFloorsInSeconds;
-            }
-
-            return estimatedTimeOfArrival;
-        }
-
         public void EmergencyStop()
         {
-            Status = ElevatorStatus.Stopped;
-            LiftingDirection = ElevatorCarLiftingDirection.None;
-
+            Status = ElevatorStatus.Emergency;
             FloorQueue.Clear();
         }
     }

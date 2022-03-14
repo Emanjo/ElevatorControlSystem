@@ -8,34 +8,34 @@ namespace ElevatorControlSystem
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var elevatorControl = new ElevatorControlService(new ElevatorStatusService());
 
-            var elevatorControl = new ElevatorControlService(3);
-
-            do
+            while(true)
             {
-                bool shouldEnterMoreFloors;
-                do
+                while(true)
                 {
                     Console.WriteLine("Enter floor or press enter to continue:");
+
                     var choice = Console.ReadLine();
 
                     if (string.IsNullOrWhiteSpace(choice)) break;
 
                     if (!int.TryParse(choice, out int choiseAsInt)) 
                     {
-                        Console.WriteLine("Wrong format of floor!");
-                        shouldEnterMoreFloors = true;
+                        Console.WriteLine("Floor can only be a number! Please try again:");
                         continue;
                     }
 
                     elevatorControl.EnqueueFloor(choiseAsInt);
-                    shouldEnterMoreFloors = true;
                 }
-                while (shouldEnterMoreFloors);
 
+                if (!elevatorControl.GoToNextFloor())
+                {
+                    Console.WriteLine("Arrived at last stop");
+                    break;
+                }
+                    
             }
-            while (elevatorControl.RunElevator());
         }
     }
 }

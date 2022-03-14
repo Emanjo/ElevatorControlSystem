@@ -1,9 +1,9 @@
 ﻿namespace ElevatorControlSystem.Models.Enums
 {
-    public enum ElevatorCarLiftingDirection
+    public enum ElevatorLiftingDirection
     {
         Up,
         Down,
-        None
+        Still
     }
 }

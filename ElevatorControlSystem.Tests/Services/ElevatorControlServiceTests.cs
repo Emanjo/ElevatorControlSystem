@@ -1,4 +1,5 @@
 ﻿using ElevatorControlSystem.Models;
+using ElevatorControlSystem.Models.Enums;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ElevatorControlSystem.Tests.Services
@@ -7,22 +8,53 @@ namespace ElevatorControlSystem.Tests.Services
     public class ElevatorControlServiceTests
     {
         [TestMethod]
-        public void CheckIfGetEstimatedTimeForFloorIsCorrect()
+        public void ShouldGoToNextFloor()
         {
             //Arrange
-            var sut = new ElevatorControlService(3);
+            var sut = new ElevatorControlService(new ElevatorStatusService());
 
-            sut.EnqueueFloor(1);
-            sut.EnqueueFloor(5);
-            sut.EnqueueFloor(4);
+            sut.EnqueueFloor(2);
 
-            //Act
-            var result1 = sut.GetEstimatedTimeForFloor(4);
-            var result2 = sut.GetEstimatedTimeForFloor(5);
+            sut.GoToNextFloor();
 
-            //Assert
-            Assert.AreEqual(15, result1);
-            Assert.AreEqual(12, result2);
+            //Act & Assert
+            Assert.AreEqual(2, sut.CurrentFloor);
+        }
+
+        [TestMethod]
+        public void ShouldSetCorrectStatusWhenEmeregncyStop()
+        {
+            //Arrange
+            var sut = new ElevatorControlService(new ElevatorStatusService());
+
+            sut.EnqueueFloor(2);
+
+            sut.GoToNextFloor();
+
+            sut.EmergencyStop();
+
+            //Act & Assert
+            Assert.AreEqual(2, sut.CurrentFloor);
+            Assert.AreEqual(ElevatorStatus.Emergency, sut.Status);
+        }
+
+        [TestMethod]
+        public void ShouldNotGoToNextFloorWhenInEmergency()
+        {
+            //Arrange
+            var sut = new ElevatorControlService(new ElevatorStatusService());
+
+            sut.EnqueueFloor(2);
+            sut.EnqueueFloor(3);
+
+            sut.GoToNextFloor();
+
+            sut.EmergencyStop();
+
+            sut.GoToNextFloor();
+
+            //Act & Assert
+            Assert.AreNotEqual(3, sut.CurrentFloor);
         }
     }
 }
